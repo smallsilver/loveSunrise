@@ -1,0 +1,134 @@
+import java.util.zip.*
+
+
+// 发布文件夹
+def packageLocPath = "/Users/sunrise/Downloads/outputs/dir"
+// 最终发布包存放的子目录
+def childPath = "gen"
+// 渠道文件名
+def channelFileName = "id.txt"
+// 打包日期
+def releaseTime = new Date().format("yyyy-MM-dd", TimeZone.getTimeZone("GMT+8"))
+// 基础 flavor 名称
+def baseFlavor = "your_flavor_name"
+// 打包的 buildType 名称
+def buildType = "release"
+// 发布包前缀
+def baseAppName = "your_apk_name_prefix"
+// Zip 条目前缀
+def entryPrefix = "META-INF/"
+def UMENG_CHANNEL = entryPrefix + "UMENG_CHANNEL_"
+def CHANNEL_VALUE = entryPrefix + "CHANNEL_VALUE_"
+
+// 存储需要特殊处理的渠道
+def specialChannel = android.productFlavors.findAll { baseFlavor != it.name }.collect { it.name }
+
+// 将所有 AS 生成的包复制到发布文件夹
+def prepareAllPackage = project.tasks.create("copyAllPackage")
+prepareAllPackage.setGroup("MultiChannelPackage")
+// 生成所有最终发布版的 APK 包
+def publishAllPackage = project.tasks.create("publishAllPackage")
+publishAllPackage.setGroup("MultiChannelPackage")
+
+// 读取渠道值文件 "友盟渠道值:自定义渠道值" 一行一个
+def readChannelFromFile = { String path ->
+    def channelValue = [:]
+    new File(path).eachLine {
+        def channelName = it.split(":")[0].trim()
+        def customValue = it.split(":")[-1].trim()
+        channelValue[channelName] = customValue
+    }
+    return channelValue
+}
+
+// 对 APK 文件进行操作，添加代表渠道的空 entry
+def processPackage = { String originFilePath, String processedFilePath, entriesPath ->
+    def originZipFile = new ZipFile(originFilePath)
+    def outFile = new File(processedFilePath)
+
+    outFile.withOutputStream { os ->
+        def zipOut = new ZipOutputStream(os)
+
+        // 完全遍历拷贝原 APK 的 entry
+        originZipFile.entries().each { entry ->
+            zipOut.putNextEntry(new ZipEntry(entry.name))
+            zipOut << originZipFile.getInputStream(entry).bytes
+            zipOut.closeEntry()
+        }
+
+        // 创建传入的空 entry
+        entriesPath.each {
+            zipOut.putNextEntry(new ZipEntry(it))
+            zipOut.closeEntry()
+        }
+
+        zipOut.close()
+    }
+    originZipFile.close()
+}
+
+// 遍历所有 Build Variants，添加动态 task
+android.applicationVariants.all { variant ->
+    // 只依赖特定 BuildType
+    if (variant.buildType.name == buildType) {
+        // 获取 productFlavor 名称
+        def flavorName = variant.productFlavors[0].name
+        // 新生成的文件名
+        def newCopyFileName = "${baseAppName}_V${android.defaultConfig.versionName}_${releaseTime}_${flavorName}.apk"
+        // 复制到文件夹
+        def copyDir = "${packageLocPath}/"
+        // 最终生成 APK 所在目录
+        def genDir = "${packageLocPath}/${childPath}/"
+        // 准备好文件夹
+        file(genDir).mkdirs()
+
+
+        // 创建复制类型的 task 参考文档 https://docs.gradle.org/current/userguide/working_with_files.html#sec:copying_files
+        def copyAndRename = project.task("copy${variant.name.capitalize()}", type: Copy)
+        copyAndRename.setGroup("MultiChannelPackage")
+        copyAndRename.from(variant.outputs[0].outputFile)
+        copyAndRename.into(copyDir)
+        copyAndRename.rename { newCopyFileName }
+        copyAndRename.doLast {
+            println "Copy ${variant.name.capitalize()} APK File To ${packageLocPath} Done!"
+        }
+        // 处理依赖，动态子项依赖 assemble<ProductFlavorName><BuildType>
+        copyAndRename.dependsOn project.getTasksByName("assemble${variant.name.capitalize()}", false)
+        // 总 task 依赖所有动态子项
+        prepareAllPackage.dependsOn copyAndRename
+
+        // 定义处理 APK 文件的 task
+        def channelMap = readChannelFromFile(channelFileName)
+        def processApkTask
+        // 因为除了需要特殊处理的渠道，其余的渠道包都是一个底包
+        if (variant.name.contains(baseFlavor)) {
+            channelMap.each { k, v ->
+                if (!specialChannel.contains(k)) {
+                    def newTaskName = "publish${variant.name.replace(baseFlavor, k).capitalize()}"
+                    processApkTask = project.tasks.create(newTaskName)
+                    processApkTask.setGroup("MultiChannelPackage")
+                    processApkTask.doLast {
+                        def newPkgFileName = newCopyFileName.replace(baseFlavor, k)
+                        processPackage(copyDir + newCopyFileName, genDir + newPkgFileName,
+                                [UMENG_CHANNEL + k, CHANNEL_VALUE + v])
+                        println "${genDir + newPkgFileName} Generated"
+                    }
+                    processApkTask.dependsOn project.getTasksByName("copy${baseFlavor}Packages", false)
+                    publishAllPackage.dependsOn processApkTask
+                    processApkTask.outputs.file(genDir + newPkgFileName)
+                }
+            }
+        } else { // 每个需要特殊处理的渠道包单独进行处理
+            processApkTask = project.tasks.create("publish${variant.name.capitalize()}")
+            processApkTask.setGroup("MultiChannelPackage")
+            processApkTask.doLast {
+                processPackage(copyDir + newCopyFileName, genDir + newCopyFileName,
+                        [UMENG_CHANNEL + flavorName, CHANNEL_VALUE + channelMap.flavorName])
+                println "${genDir + newCopyFileName} Generated"
+            }
+            processApkTask.dependsOn project.getTasks().findByName("copy${flavorName.capitalize()}Packages")
+            processApkTask.outputs.file(genDir + newCopyFileName)
+            publishAllPackage.dependsOn processApkTask
+        }
+    }
+}
