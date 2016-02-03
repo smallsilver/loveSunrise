@@ -18,7 +18,7 @@
         android:layout_height="wrap_content"
         android:text="Hello world!" />
 
-    <com.silver.droid.common.widget.SiImageView
+    <com.silver.slib.widget.SiImageView
         android:id="@+id/test"
         android:layout_width="50dp"
         android:layout_height="50dp"
@@ -28,5 +28,5 @@
         app:sil_img_circle="true">
 
 
-    </com.silver.droid.common.widget.SiImageView>
+    </com.silver.slib.widget.SiImageView>
 </RelativeLayout>

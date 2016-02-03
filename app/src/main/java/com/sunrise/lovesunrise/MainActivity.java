@@ -21,7 +21,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        Fabric.with(this, new Crashlytics());
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -46,6 +45,7 @@ public class MainActivity extends AppCompatActivity
 
         TextView text = (TextView) findViewById(R.id.main_text);
         text.setText(Html.fromHtml("<font color='#ffff00' size='24px'>北京 晴 </font><font color='#ff0000' size='18px'>2/-8℃</font> 不适合钓鱼"));
+
     }
 
     @Override
