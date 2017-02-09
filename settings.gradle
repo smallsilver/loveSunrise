@@ -1,1 +1,1 @@
-include ':app', ':silverlib'
+include ':app', ':silverlib', ':testsilverandroid'

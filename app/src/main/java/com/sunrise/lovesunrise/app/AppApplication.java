@@ -4,11 +4,19 @@ import android.app.Application;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.text.TextUtils;
+
+import com.alipay.euler.andfix.patch.PatchManager;
+import com.crashlytics.android.Crashlytics;
 import com.silver.slib.Const;
 import com.silver.slib.util.ChannelUtil;
+import com.silver.slib.util.CommTool;
 import com.silver.slib.util.CrashHandler;
 import com.silver.slib.util.DLog;
-import com.umeng.analytics.AnalyticsConfig;
+
+import java.io.File;
+import java.io.IOException;
+
+import io.fabric.sdk.android.Fabric;
 
 /**
  * @desc 系统 application
@@ -18,10 +26,14 @@ import com.umeng.analytics.AnalyticsConfig;
  */
 public class AppApplication extends Application {
 
+    PatchManager patchManager;
+
+    private String path = CommTool.getSDRoot()+ File.separator+"tmp.apatch";
     @Override
     public void onCreate() {
 
         super.onCreate();
+        Fabric.with(this, new Crashlytics());
 
         Const.mContext = getApplicationContext();
 
@@ -43,10 +55,6 @@ public class AppApplication extends Application {
                 channel = "silver_test";
             }
 
-            AnalyticsConfig.setAppkey(Const.mContext,"557ac0e067e58e089e002feb");
-
-            AnalyticsConfig.setChannel(channel);
-
             DLog.d(getClass().getName(), "channel_"+channel);
             Const.CHANNEL_ID = channel;
         } catch (Exception e) {
@@ -61,6 +69,18 @@ public class AppApplication extends Application {
             Const.PACKAGE_NAME = packageInfo.packageName;
             Const.VERSION_CODE = packageInfo.versionCode;
             Const.VERSION_NAME = packageInfo.versionName;
+        }
+
+        patchManager = new PatchManager(this);
+
+        patchManager.init(Const.VERSION_NAME);
+
+        patchManager.loadPatch();
+
+        try {
+            patchManager.addPatch(path);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         Const.DEVICE_ID = android.provider.Settings.Secure.getString(getApplicationContext().getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);

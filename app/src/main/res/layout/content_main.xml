@@ -16,6 +16,8 @@
         android:id="@+id/main_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:clickable="true"
+        android:gravity="center_vertical"
         android:text="Hello world!" />
 
     <com.silver.slib.widget.SiImageView
@@ -27,6 +29,20 @@
         app:sil_img_press_color="@color/colorPrimary_alpha"
         app:sil_img_circle="true">
 
-
     </com.silver.slib.widget.SiImageView>
+
+    <!--<include layout="@layout/si_plus_minus_layout"/>
+    <com.silver.slib.widget.PlusMinusView
+        android:id="@+id/test1"
+        android:layout_height="30dp"
+        android:layout_width="120dp"
+        >
+    </com.silver.slib.widget.PlusMinusView>
+
+-->
+    <ImageView
+        android:id="@+id/main_img"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        />
 </RelativeLayout>

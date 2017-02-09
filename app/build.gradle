@@ -1,60 +1,102 @@
-apply plugin: 'com.android.application'
+apply plugin: "com.android.application"
+
+apply plugin: 'io.fabric'
+//
+//repositories {
+//    maven { url 'https://maven.fabric.io/public' }
+//}
 
 buildscript {
-  repositories {
+    repositories {
 
-    jcenter()
-  }
+        jcenter()
 
-  dependencies {
-    classpath 'com.android.tools.build:gradle:2.0.0-alpha7'
-  }
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:2.2.2'
+    }
 }
 
 android {
-  compileSdkVersion 23
-  buildToolsVersion "23.0.2"
+    compileSdkVersion 23
+    buildToolsVersion "23.0.2"
 
-  defaultConfig {
-    applicationId "com.sunrise.lovesunrise"
-    minSdkVersion 14
-    targetSdkVersion 23
-    versionCode 1
-    versionName "1.0"
-  }
-  buildTypes {
-    release {
-      minifyEnabled false
-      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+    defaultConfig {
+        applicationId "com.sunrise.lovesunrise"
+        minSdkVersion 14
+        targetSdkVersion 14
+        versionCode 1
+        versionName "1.0"
     }
-  }
-  productFlavors {
-    unrise {}
-  }
-  productFlavors.all { flavor -> flavor.manifestPlaceholders = [UMENG_CHANNEL_VALUE: name]
-  }
+    signingConfigs {
+
+        config {
+            keyAlias "${apprisealias}"
+            keyPassword "${apprisepassword}"
+            storeFile file("${apprisefile}")
+            storePassword "${apprisepassword}"
+        }
+
+        debug {
+            keyAlias "${apprisealias}"
+            keyPassword "${apprisepassword}"
+            storeFile file("${apprisefile}")
+            storePassword "${apprisepassword}"
+        }
+    }
+    buildTypes {
+        release {
+
+            minifyEnabled false
+
+            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+
+            // 使用release签名
+            signingConfig signingConfigs.config
+
+            // 开启ZipAlign优化
+            zipAlignEnabled true
+            ndk {
+                abiFilters "armeabi", "armeabi-v7a"
+                //指定要ndk需要兼容的架构(这样其他依赖包里mips,x86,armeabi,arm-v8之类的so会被过滤掉)
+            }
+
+        }
+    }
+    productFlavors {
+        sunrise {}
+    }
+    productFlavors.all { flavor -> flavor.manifestPlaceholders = [UMENG_CHANNEL_VALUE: name]
+    }
 }
 
-
 dependencies {
-  compile fileTree(include: ['*.jar'], dir: 'libs')
-  //    compile 'com.github.mmin18.layoutcast:library:1.+@aar'
-  testCompile 'junit:junit:4.12'
-  compile 'com.android.support:appcompat-v7:23.+'
-  compile 'com.android.support:design:23.+'
-  compile 'com.umeng.analytics:analytics:latest.integration'
-  //    compile('com.crashlytics.sdk.android:crashlytics:2.5.5@aar') {
-  //        transitive = true;
-  //    }
-  //
-  // okhttp
-  compile 'com.squareup.okhttp:okhttp:2.+'
-  // RxJava
-  // Because RxAndroid releases are few and far between, it is recommended you also
-  // explicitly depend on RxJava's latest version for bug fixes and new features.
-  compile 'io.reactivex:rxjava:1.+'
-  compile 'io.reactivex:rxandroid:1.+'
-  compile 'com.google.code.gson:gson:2.+'
-  compile 'com.silver:silverlib:1.+@aar'
-  compile 'com.squareup.retrofit2:retrofit:2.0.0-beta3'
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    //    compile "com.github.mmin18.layoutcast:library:1.+@aar"
+    testCompile 'junit:junit:4.12'
+    compile("com.crashlytics.sdk.android:crashlytics:2.6.5@aar") {
+        transitive = true;
+    }
+    //
+    // okhttp
+    // RxJava
+    // Because RxAndroid releases are few and far between, it is recommended you also
+    // explicitly depend on RxJava"s latest version for bug fixes and new features.
+    //  compile "com.silver:silverlib:1.+@aar"
+    compile project(':silverlib')
+    compile 'com.android.support:appcompat-v7:23.0.1'
+    compile 'com.android.support:design:23.0.1'
+    compile 'com.umeng.analytics:analytics:latest.integration'
+    compile 'com.squareup.okhttp:okhttp:2.7.5'
+    compile 'io.reactivex:rxjava:1.1.6'
+    compile 'io.reactivex:rxandroid:1.2.1'
+    compile 'com.google.code.gson:gson:2.2.4'
+    compile 'com.squareup.retrofit2:retrofit:2.0.0-beta3'
+    compile 'com.alipay.euler:andfix:0.5.0@aar'
+    compile 'com.mcxiaoke.volley:library:1.0.19'
+    compile 'com.squareup.picasso:picasso:2.5.2'
+    compile 'com.nostra13.universalimageloader:universal-image-loader:1.9.5'
+    compile 'com.github.diaoyuren:FlycoTabLayout:v1.0'
+    compile 'com.google.code.ksoap2-android:ksoap2-android:3.6.2'
 }

@@ -20,5 +20,5 @@
 <resources>
   <!-- 系统黑色半透明颜色 50%-->
   <color name="sys_default_half_black">#b0000000</color>
-
+  <color name="market_plus_normal_color">#d7d7d7</color>
 </resources>
