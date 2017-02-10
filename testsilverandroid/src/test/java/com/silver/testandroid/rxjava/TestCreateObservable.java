@@ -4,9 +4,14 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import rx.Observable;
 import rx.Subscriber;
+import rx.functions.Action1;
 import rx.functions.Func0;
 
 /**
@@ -109,7 +114,7 @@ public class TestCreateObservable {
 
             @Override
             public void onCompleted() {
-                System.out.println("createEmptyNeverThrow Sequence complete.");
+                System.out.println("empty Sequence complete.");
             }
         });
         Observable.never().subscribe(new Subscriber<Object>() {
@@ -125,7 +130,7 @@ public class TestCreateObservable {
 
             @Override
             public void onCompleted() {
-                System.out.println("createEmptyNeverThrow Sequence complete.");
+                System.out.println("never Sequence complete.");
             }
         });
         Observable.error(new RuntimeException("test Run Exception")).subscribe(new Subscriber<Object>() {
@@ -141,8 +146,121 @@ public class TestCreateObservable {
 
             @Override
             public void onCompleted() {
-                System.out.println("createEmptyNeverThrow Sequence complete.");
+                System.out.println("error Sequence complete.");
             }
         });
+        final ExecutorService executor = Executors.newFixedThreadPool( 5 );
+        Observable.from(executor.submit(new Callable<String>(){
+            @Override
+            public String call()
+            {
+                return "test-->call";
+            }
+        })
+        ).subscribe(new Subscriber<String>() {
+            @Override
+            public void onNext(String item) {
+                System.out.println("Next: " + item);
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                System.err.println("Error: " + error.getMessage());
+            }
+
+            @Override
+            public void onCompleted() {
+                System.out.println("from FutureTask Sequence complete.");
+            }
+        });
+//        Observable.interval(0,1,java.util.concurrent.TimeUnit.SECONDS).subscribe(new Subscriber<Long>() {
+//            @Override
+//            public void onNext(Long item) {
+//                System.out.println("interval Next: " + item);
+//            }
+//
+//            @Override
+//            public void onError(Throwable error) {
+//                System.err.println("interval Error: " + error.getMessage());
+//            }
+//
+//            @Override
+//            public void onCompleted() {
+//                System.out.println("interval Sequence complete.");
+//            }
+//        });
+
+//        just
+        Observable.just(1, 2, 3).subscribe(new Subscriber<Integer>() {
+                    @Override
+                    public void onNext(Integer item) {
+                        System.out.println("Next: " + item);
+                    }
+
+                    @Override
+                    public void onError(Throwable error) {
+                        System.err.println("Error: " + error.getMessage());
+                    }
+
+                    @Override
+                    public void onCompleted() {
+                        System.out.println("Sequence complete.");
+                    }
+                });
+        Observable.range(2, 5).subscribe(new Subscriber<Integer>() {
+            @Override
+            public void onNext(Integer item) {
+                System.out.println("range Next: " + item);
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                System.err.println("range Error: " + error.getMessage());
+            }
+
+            @Override
+            public void onCompleted() {
+                System.out.println("range Sequence complete.");
+            }
+        });
+
+        Observable.just("110").repeat(10).subscribe(new Action1<String>() {
+            @Override
+            public void call(String item) {
+                System.out.println("range Next: " + item);
+            }
+        });
+        Observable.range(6,10).startWith(5).subscribe(new Action1<Integer>() {
+            @Override
+            public void call(Integer item) {
+                System.out.println("range startWith Next: " + item);
+
+            }
+        });
+
+        Observable.just(7899l).delay(2l, TimeUnit.SECONDS).subscribe(new Action1<Long>() {
+            @Override
+            public void call(Long item) {
+                System.out.println("delay Next: " + item);
+            }
+        });
+        Observable obs = Observable.just(234l);
+        obs.subscribe(new Action1<Long>() {
+            @Override
+            public void call(Long item) {
+                System.out.println("timer Next: "+item);
+            }
+        });
+        obs.timer(3l,TimeUnit.SECONDS).subscribe(new Action1<Long>() {
+            @Override
+            public void call(Long item) {
+                System.out.println("timer Next: "+item);
+            }
+        });
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }
