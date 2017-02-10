@@ -93,4 +93,56 @@ public class TestCreateObservable {
             }
         });
     }
+
+    @Test
+    public void createEmptyNeverThrow(){
+        Observable.empty().subscribe(new Subscriber<Object>() {
+            @Override
+            public void onNext(Object item) {
+                System.out.println("Next: " + item);
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                System.err.println("Error: " + error.getMessage());
+            }
+
+            @Override
+            public void onCompleted() {
+                System.out.println("createEmptyNeverThrow Sequence complete.");
+            }
+        });
+        Observable.never().subscribe(new Subscriber<Object>() {
+            @Override
+            public void onNext(Object item) {
+                System.out.println("Next: " + item);
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                System.err.println("Error: " + error.getMessage());
+            }
+
+            @Override
+            public void onCompleted() {
+                System.out.println("createEmptyNeverThrow Sequence complete.");
+            }
+        });
+        Observable.error(new RuntimeException("test Run Exception")).subscribe(new Subscriber<Object>() {
+            @Override
+            public void onNext(Object item) {
+                System.out.println("Next: " + item);
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                System.err.println("Error: " + error.getMessage());
+            }
+
+            @Override
+            public void onCompleted() {
+                System.out.println("createEmptyNeverThrow Sequence complete.");
+            }
+        });
+    }
 }
