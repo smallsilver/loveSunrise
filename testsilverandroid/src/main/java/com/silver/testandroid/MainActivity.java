@@ -14,20 +14,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.target.Target;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import rx.Observable;
-import rx.Subscriber;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Func0;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
+import com.silver.testandroid.fragment.TestLifeCycleFragment;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -35,6 +22,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.i(TAG,"super.onCreate();");
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -98,8 +86,7 @@ public class MainActivity extends AppCompatActivity
 
         if (id == R.id.nav_camera) {
             // Handle the camera action
-            testRxJavaMerge();
-            testRxJavaConcat();
+            getSupportFragmentManager().beginTransaction().add(R.id.content_frame,new TestLifeCycleFragment()).commitAllowingStateLoss();
         } else if (id == R.id.nav_gallery) {
 
         } else if (id == R.id.nav_slideshow) {
@@ -117,76 +104,51 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    List<String> list = new ArrayList<>();
-
-    //    explain in http://reactivex.io/documentation/operators/merge.html
-    private void testRxJavaMerge(){
-        Observable.merge(createObservable("http://static.diaoyu123.cc/app/default/img/icon/footer_menu/home_n_2x.png")
-                ,createObservable("http://static.diaoyu123.cc/app/default/img/icon/footer_menu/home_h_2x.png"))
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<Object>() {
-                    @Override
-                    public void onCompleted() {
-                        Log.d(TAG,"done loading all data"+ Arrays.toString(list.toArray()));
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        Log.d(TAG,"error");
-                    }
-
-                    @Override
-                    public void onNext(Object data) {
-                        list.add(data.toString());
-                        Log.d(TAG,"all merged data will pass here one by one!"+data);
-                    }
-                });
-    }
-//    explain in http://reactivex.io/documentation/operators/concat.html
-    private void testRxJavaConcat(){
-        Observable.concat(Observable.just(1),Observable.just(2),Observable.just(3),Observable.just(4))
-            .flatMap(new Func1<Integer, Observable<?>>() {
-                @Override
-                public Observable<String> call(Integer integer) {
-                    return Observable.just(""+(integer+2));
-                }
-            })
-            .subscribe(new Subscriber<Object>() {
-                @Override
-                public void onCompleted() {
-                    Log.d(TAG,"testRxJavaConcat done loading all data");
-                }
-
-                @Override
-                public void onError(Throwable e) {
-                    Log.d(TAG,"testRxJavaConcat error");
-                }
-
-                @Override
-                public void onNext(Object data) {
-                    Log.d(TAG,"testRxJavaConcat all concat data will pass here one by one!");
-                }
-            });
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.i(TAG,"super.onDestroy();");
     }
 
-    private Observable createObservable(final String path){
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.i(TAG,"super.onStart();");
+    }
 
-        Observable observable = Observable.defer(new Func0<Observable<String>>() {
-            @Override
-            public Observable<String> call() {
-                try {
-                    File file = Glide.with(getApplicationContext())
-                            .load(path)
-                            .downloadOnly(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
-                            .get();
-                    return Observable.just(file.getAbsolutePath());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return Observable.just("");
-                }
-            }
-        }).subscribeOn(Schedulers.io());
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.i(TAG,"super.onStop();");
+    }
 
-        return observable;
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.i(TAG,"super.onPause();");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.i(TAG,"super.onResume();");
+    }
+
+    @Override
+    public void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        Log.i(TAG,"super.onAttachedToWindow();");
+    }
+
+    @Override
+    public void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        Log.i(TAG,"super.onDetachedFromWindow();");
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Log.i(TAG,"super.onRestart();");
     }
 }
